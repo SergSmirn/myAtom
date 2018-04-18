@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div class="row justify-content-center" style="margin-top: 2%;">
+    <div class="col-lg-10 col-sm-12 card">
+      <div class="row justify-content-between card-header">
+        <h3 class="col-auto">{{ dish.name }}</h3>
+        <div class="col-auto">
+          <button type="button" value="{{ dish.pk }}" id="like{{ forloop.counter }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes.count }}</button>
+          <button type="button" value="{{ dish.pk }}" id="favorite{{ forloop.counter }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorite_set.count }}</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-7 col-sm-12">
+          <div class="row">
+            <img src="{{ dish.picture_file.url }}" width="100%" height="100%">
+          </div>
+        </div>
+        <div class="col-md-5 col-sm-12 ml-auto">
+          {{ dish.description }}
+        </div>
+      </div>
+      <br>
+      <div class="row justify-content-start">
+        {% for ingredient in dish.ingredients.all %}
+          <div class="col-auto">
+            <a href="{% url 'get_ingredient' ingredient.pk %}" class="btn btn-info">{{ ingredient.name }}</a>
+          </div>
+        {% endfor %}
+      </div>
+      <br>
+      <div class="row justify-content-between card-footer">
+        <div class="col-auto">
+          Автор: {{ dish.author.username }}
+        </div>
+        <div class="col-auto">
+          {{ dish.created_at }}
+        </div>
+      </div>
+    </div>
+
+    <br><br>
+
+    <div class="col-lg-10 col-sm-12" style="margin-top: 3%">
+      <div class="row card-header">
+        <h3>Комментарии: {{ comments.count }}</h3>
+      </div>
+      {% for comment in comments %}
+        <div class="row">
+          <div class="col-12 card" style="border: 1px solid rgba(0,0,0,.1); margin-bottom: 2%">
+            <br>
+            <div class="row justify-content-around">
+              <div class="col-2">
+                <div class="row">
+                  <img src="{{ dish.author.profile.avatar.url }}" width="100%" height="100%">
+                </div>
+                <div class="row justify-content-center">
+                  <a>{{ comment.author.username }}</a>
+                </div>
+              </div>
+              <div class="col-8 text-center">
+                <p>{{ comment.text }}</p>
+              </div>
+            </div>
+            <div class="row justify-content-between card-footer">
+              <div class="col-auto">
+                {{ comment.created_at }}
+              </div>
+              <div class="col-auto">
+                <button type="button" value="{{ comment.pk }}" id="comment-like{{ forloop.counter }}" class="btn btn-danger {% if not comment.user_like %}btn-outline-danger{% endif %} comment-like">{{ comment.likes_count }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {% endfor %}
+      <div class="row">
+        <div class="card col-12">
+          <div class="card-body">
+            <h3 class="card-title">Добавить комментарий</h3>
+            <form method="post" novalidate>
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ next }}">
+              {% include 'includes/form.html' %}
+              <button type="submit" class="btn btn-success">Отправить</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascript %}
+  {% if user.is_authenticated %}
+    <script type="text/javascript" src="{% static '/js/base.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            $('.content').on('click', '.comment-like', function () {
+                var id = $(this).attr("id");
+                $.ajax({
+
+                    type: "GET",
+
+                    url: "/activity/check_likes/",
+
+                    data: {
+                        'obj_pk': document.getElementById(id).value,
+                        'obj_type': 'comment'
+                    },
+
+                    cache: false,
+
+                    success: function (data) {
+                        console.log(data);
+                        if (data.is_liked) {
+                            document.getElementById(id).classList.remove('btn-outline-danger');
+                            console.log('like');
+                        }
+                        else {
+                            document.getElementById(id).classList.add('btn-outline-danger');
+                            console.log('not like');
+                        }
+                        document.getElementById(id).textContent = data.likes_count;
+                    }
+                });
+            });
+        });
+    </script>
+  {% endif %}
+{% endblock %}
