@@ -17,7 +17,7 @@
           </div>
           <div class="col-sm-12 col-md-8">
             <h4>Личная информация</h4>
-            <form method="post" enctype="multipart/form-data" novalidate>
+            <form method="post" enctype="multipart/form-data" id="account-form" novalidate>
               {% csrf_token %}
               {% for form in forms %}
                 {% include 'includes/form.html' %}
@@ -29,4 +29,34 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+      $(document).ready(function () {
+          $('#account-form').submit(function (e) {
+              e.preventDefault();
+              const data = new FormData(this);
+
+              $.ajax({
+
+                  type: "POST",
+
+                  url: "/accounts/settings/account/",
+
+                  data: data,
+
+                  processData: false,
+
+                  contentType: false,
+
+                  cache: false,
+
+                  success: function (data) {
+                      document.querySelector('.content').innerHTML = data;
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

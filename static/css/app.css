@@ -1,6 +1,6 @@
 body {
   background-image: url(../img/background.jpg);
-  font-family: 'Ubuntu' !important;
+  /*font-family: 'Ubuntu' !important;*/
   background-repeat: no-repeat;
   background-attachment: fixed;
   -webkit-background-size: cover;
@@ -11,4 +11,31 @@ body {
 
 .nav-link {
   cursor: pointer;
+}
+
+.btn:focus, .btn:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.wrap-normal{
+  white-space: normal;
+}
+
+.delete-img {
+  margin-right: 7px;
+  opacity: .5;
+  cursor: pointer;
+}
+.delete-img:hover {
+  opacity: .8;
+}
+.delete-img:active {
+  color: red;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+#more-comment:hover {
+  filter: contrast(1%);
 }

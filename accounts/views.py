@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 
 
 def signup(request):
@@ -51,12 +52,13 @@ def activate(request, uidb64, token):
 
 def user_update(request):
     if request.method == 'POST':
+        print(request.POST, request.FILES)
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
-            return redirect('my_account')
+        return render(request, 'accounts/account-form.html', {'forms': [user_form, profile_form]})
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = ProfileForm(instance=request.user.profile)

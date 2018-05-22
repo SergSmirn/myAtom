@@ -1,36 +1,84 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block ms %}
+  <div class="col-auto ml-auto form-inline">
+    <div id="magicsuggest" style="width: 20em"></div>
+    <button type="button" id="search-btn" class="btn btn-success" style="margin-left: 10px">Подобрать</button>
+  </div>
+{% endblock %}
+
 {% block content %}
 
   {% for dish in dishes %}
-  <div class="row justify-content-center" style="margin-top: 2%; margin-bottom: 1%">
-    <div class="col-md-9 col-sm-12 card">
-      <div class="row justify-content-between card-header">
-        <h4 class="col-auto">
-          <a href="{% url 'get_dish' dish.pk %}">{{ dish.name }}</a>
-        </h4>
-        <div class="col-auto">
-          <button type="button" value="{{ dish.pk }}" id="like{{ dish.pk }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes_count }}</button>
-          <button type="button" value="{{ dish.pk }}" id="favorite{{ dish.pk }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorites_count }}</button>
+    <div class="row justify-content-center" style="margin-top: 2%; margin-bottom: 1%">
+      <div class="col-md-9 col-sm-12 card">
+        <div class="row justify-content-between align-items-center card-header">
+          <h4 class="col-8">
+            <a href="{% url 'get_dish' dish.pk %}">{{ dish.name }}</a>
+          </h4>
+          <div class="col-4">
+            <button type="button" value="{{ dish.pk }}" id="like{{ dish.pk }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes_count }}</button>
+            <button type="button" value="{{ dish.pk }}" id="favorite{{ dish.pk }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorites_count }}</button>
+          </div>
         </div>
-      </div>
-      <div class="card-img">
-        <div class="row">
-          <img src="{{ dish.picture_file.url }}" width="100%" height="100%">
+        <div class="card-img">
+          <div class="row">
+            <img src="{{ dish.picture_file.url }}" width="100%" height="100%">
+          </div>
         </div>
-      </div>
-      <div class="row justify-content-between card-footer">
-        <div class="col-auto">Автор: {{ dish.author.username }}</div>
-        <div class="col-auto">{{ dish.created_at }}</div>
+        <div class="row justify-content-between card-footer">
+          <div class="col-auto">Автор: {{ dish.author.username }}</div>
+          <div class="col-auto">{{ dish.created_at }}</div>
+        </div>
       </div>
     </div>
-  </div>
   {% endfor %}
 
 {% endblock %}
 {% block javascript %}
-    <script type="text/javascript" src="{% static '/js/home.js' %}"></script>
+  <script type="text/javascript" src="{% static '/js/centrifuge.js' %}"></script>
+  <script type="text/javascript">
+
+      let centrifuge = new Centrifuge({
+          url: 'http://10.5.126.9:8002/connection/websocket',
+          user: "",
+          timestamp: "{{ timestamp }}",
+          token: "{{ token }}"
+      });
+
+      centrifuge.subscribe("home", function(message) {
+          console.log(message);
+          let id;
+          let e;
+          switch (message.data.type) {
+              case 'like':
+                  id = 'like' + message.data.id;
+                  e = document.getElementById(id);
+                  e.textContent++;
+                  break;
+              case 'unlike':
+                  id = 'like' + message.data.id;
+                  e = document.getElementById(id);
+                  e.textContent--;
+                  break;
+              case 'favorite':
+                  id = 'favorite' + message.data.id;
+                  e = document.getElementById(id);
+                  e.textContent++;
+                  break;
+              case 'unfavorite':
+                  id = 'favorite' + message.data.id;
+                  e = document.getElementById(id);
+                  e.textContent--;
+                  break;
+          }
+      });
+
+      centrifuge.connect();
+
+</script>
+  <script type="text/javascript" src="{% static '/js/home.js' %}"></script>
   {% if user.is_authenticated %}
     <script type="text/javascript" src="{% static '/js/base.js' %}"></script>
   {% endif %}

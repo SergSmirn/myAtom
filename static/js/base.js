@@ -15,7 +15,6 @@ $(document).ready(function () {
             cache: false,
 
             success: function (data) {
-                console.log(data);
                 if (data.is_liked) {
                     document.getElementById(id).classList.remove('btn-outline-danger');
                     console.log('like');
@@ -24,7 +23,6 @@ $(document).ready(function () {
                     document.getElementById(id).classList.add('btn-outline-danger');
                     console.log('not like');
                 }
-                document.getElementById(id).textContent = data.likes_count;
             }
         });
     });
@@ -51,7 +49,6 @@ $(document).ready(function () {
                 else {
                     document.getElementById(id).classList.add('btn-outline-warning');
                 }
-                document.getElementById(id).textContent = data.favorites_count;
             }
         });
     });

@@ -5,10 +5,10 @@
   <div class="row justify-content-center" style="margin-top: 2%;">
     <div class="col-lg-10 col-sm-12 card">
       <div class="row justify-content-between card-header">
-        <h3 class="col-auto">{{ dish.name }}</h3>
+        <h3 class="col-auto d-flex">{{ dish.name }}</h3>
         <div class="col-auto">
-          <button type="button" value="{{ dish.pk }}" id="like{{ forloop.counter }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes.count }}</button>
-          <button type="button" value="{{ dish.pk }}" id="favorite{{ forloop.counter }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorite_set.count }}</button>
+          <button type="button" value="{{ dish.pk }}" id="like{{ dish.pk }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes.count }}</button>
+          <button type="button" value="{{ dish.pk }}" id="favorite{{ dish.pk }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorite_set.count }}</button>
         </div>
       </div>
       <div class="row">
@@ -18,14 +18,13 @@
           </div>
         </div>
         <div class="col-md-5 col-sm-12 ml-auto">
-          {{ dish.description }}
+          <p style="margin-top: 3%">{{ dish.description }}</p>
         </div>
       </div>
-      <br>
       <div class="row justify-content-start">
         {% for ingredient in dish.ingredients.all %}
           <div class="col-auto">
-            <a href="{% url 'get_ingredient' ingredient.pk %}" class="btn btn-info">{{ ingredient.name }}</a>
+            <a href="{% url 'get_ingredient' ingredient.pk %}" class="btn btn-info" style="margin-top: 5%">{{ ingredient.name }}</a>
           </div>
         {% endfor %}
       </div>
@@ -43,45 +42,58 @@
     <br><br>
 
     <div class="col-lg-10 col-sm-12" style="margin-top: 3%">
-      <div class="row card-header">
-        <h3>Комментарии: {{ comments.count }}</h3>
-      </div>
-      {% for comment in comments %}
+        <div class="row card">
+          <div class="card-header">
+            <h3>Комментарии:</h3>
+          </div>
+        </div>
+    {% if comments.count < 3 %}
         <div class="row">
-          <div class="col-12 card" style="border: 1px solid rgba(0,0,0,.1); margin-bottom: 2%">
-            <br>
-            <div class="row justify-content-around">
-              <div class="col-2">
-                <div class="row">
-                  <img src="{{ dish.author.profile.avatar.url }}" width="100%" height="100%">
+          <div class="btn btn-block card-header" id="more-comment">Показать ещё</div>
+        </div>
+    {% endif %}
+      <div class="comments">
+        {% for comment in comments %}
+          <div class="row" id="comment{{ comment.pk }}">
+            <div class="col-12 card" style="border: 1px solid rgba(0,0,0,.1); margin-bottom: 2%">
+              <div class="row justify-content-between card-body">
+                <div class="col-2">
+                  <div class="row">
+                    <img src="{{ comment.author.profile.avatar.url }}" width="100%" height="100%">
+                  </div>
+                  <div class="row justify-content-center">
+                    <a>{{ comment.author.username }}</a>
+                  </div>
                 </div>
-                <div class="row justify-content-center">
-                  <a>{{ comment.author.username }}</a>
+                <div class="col-7 text-center">
+                  <p>{{ comment.text }}</p>
+                </div>
+                <div class="col-auto">
+                  <i class="material-icons text-secondary delete-img" id="{{ comment.pk }}">&#xe92b;</i>
                 </div>
               </div>
-              <div class="col-8 text-center">
-                <p>{{ comment.text }}</p>
-              </div>
-            </div>
-            <div class="row justify-content-between card-footer">
-              <div class="col-auto">
-                {{ comment.created_at }}
-              </div>
-              <div class="col-auto">
-                <button type="button" value="{{ comment.pk }}" id="comment-like{{ forloop.counter }}" class="btn btn-danger {% if not comment.user_like %}btn-outline-danger{% endif %} comment-like">{{ comment.likes_count }}</button>
+              <div class="row justify-content-between card-footer">
+                <div class="col-auto">
+                  {{ comment.created_at }}
+                </div>
+                <div class="col-auto">
+                  <button type="button" value="{{ comment.pk }}" id="comment-like{{ comment.pk }}" class="btn btn-danger {% if not comment.user_like %}btn-outline-danger{% endif %} comment-like">{{ comment.likes_count }}</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-
-      {% endfor %}
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-lg-10 col-sm-12">
       <div class="row">
         <div class="card col-12">
           <div class="card-body">
             <h3 class="card-title">Добавить комментарий</h3>
-            <form method="post" novalidate>
+            <form method="post" id="add-comment" novalidate>
               {% csrf_token %}
               <input type="hidden" name="next" value="{{ next }}">
+              <input type="hidden" name="dish_id" value="{{ dish.pk }}">
               {% include 'includes/form.html' %}
               <button type="submit" class="btn btn-success">Отправить</button>
             </form>
@@ -93,6 +105,192 @@
 {% endblock %}
 
 {% block javascript %}
+
+
+
+  <script type="text/javascript" src="{% static '/js/centrifuge.js' %}"></script>
+  <script type="text/javascript">
+
+      let centrifuge = new Centrifuge({
+          url: 'http://10.5.126.9:8002/connection/websocket',
+          user: "",
+          timestamp: "{{ timestamp }}",
+          token: "{{ token }}"
+      });
+
+      centrifuge.subscribe("home", function(message) {
+          console.log(message);
+          let id;
+          let e;
+          switch (message.data.type) {
+              case 'like':
+                  id = 'like' + message.data.id;
+                  e = document.getElementById(id);
+                  if (e) {
+                      e.textContent++;
+                  }
+                  break;
+              case 'unlike':
+                  id = 'like' + message.data.id;
+                  e = document.getElementById(id);
+                  if (e) {
+                      e.textContent--;
+                  }
+                  break;
+              case 'favorite':
+                  id = 'favorite' + message.data.id;
+                  e = document.getElementById(id);
+                  if (e) {
+                      e.textContent++;
+                  }
+                  break;
+              case 'unfavorite':
+                  id = 'favorite' + message.data.id;
+                  e = document.getElementById(id);
+                  if (e) {
+                      e.textContent--;
+                  }
+                  break;
+          }
+      });
+
+      centrifuge.subscribe("comment", function(message) {
+          console.log(message);
+          let id;
+          let e;
+          switch (message.data.type) {
+              case 'like':
+                  id = 'comment-like' + message.data.id;
+                  e = document.getElementById(id);
+                  if (e) {
+                      e.textContent++;
+                  }
+                  break;
+              case 'unlike':
+                  id = 'comment-like' + message.data.id;
+                  e = document.getElementById(id);
+                  if (e) {
+                      e.textContent--;
+                  }
+                  break;
+              case 'new-comment':
+                  const options = {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      timezone: 'UTC',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                      second: 'numeric'
+                    };
+                  $('.comments').append(`<div class="row" id="comment${message.data.comment_pk}">
+                                                <div class="col-12 card" style="border: 1px solid rgba(0,0,0,.1); margin-bottom: 2%">
+                                                  <br>
+                                                  <div class="row justify-content-around">
+                                                    <div class="col-2">
+                                                      <div class="row">
+                                                        <img src="${message.data.avatar}" width="100%" height="100%">
+                                                      </div>
+                                                      <div class="row justify-content-center">
+                                                        <a>${message.data.author}</a>
+                                                      </div>
+                                                    </div>
+                                                    <div class="col-7 text-center">
+                                                      <p>${message.data.text}</p>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                      <i class="material-icons text-secondary delete-img" id="${ message.data.comment_pk }">&#xe92b;</i>
+                                                    </div>
+                                                  </div>
+                                                  <div class="row justify-content-between card-footer">
+                                                    <div class="col-auto">
+                                                      ${new Date(message.data.created_at).toLocaleString("ru", options).replace(',', '')}
+                                                    </div>
+                                                    <div class="col-auto">
+                                                      <button type="button" value="${message.data.comment_pk}" id="comment-like${message.data.comment_pk}" class="btn btn-danger btn-outline-danger comment-like">0</button>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                      `);
+                  break;
+              case 'del-comment':
+                  id = message.data.id;
+                  const comment = document.getElementById('comment' + id);
+                  if (comment) {
+                      comment.remove();
+                  }
+                  break;
+          }
+      });
+
+      centrifuge.connect();
+
+  </script>
+
+
+
+
+  <script>
+      let dish_pk = {{ dish.pk }};
+      let page = 1;
+      $(document).ready(function () {
+          $('#more-comment').click(function () {
+              $.ajax({
+
+                  type: "GET",
+
+                  url: "/activity/more_comments/",
+
+                  data: {
+                      'dish_pk': dish_pk,
+                      'page': page
+                  },
+
+                  cache: false,
+
+                  success: function (data) {
+                      console.log(data);
+                      page++;
+                      if (data.comments.length < 5) {
+                          $('#more-comment').hide();
+                      }
+                      data.comments.forEach(function (item) {
+                          $('.comments').prepend(`<div class="row" id="comment${item.id}">
+                                                <div class="col-12 card" style="border: 1px solid rgba(0,0,0,.1); margin-bottom: 2%">
+                                                  <div class="row justify-content-between card-body">
+                                                    <div class="col-2">
+                                                      <div class="row">
+                                                        <img src="/media/${item.author__profile__avatar}" width="100%" height="100%">
+                                                      </div>
+                                                      <div class="row justify-content-center">
+                                                        <a>${item.author__username}</a>
+                                                      </div>
+                                                    </div>
+                                                    <div class="col-7 text-center">
+                                                      <p>${item.text}</p>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                      <img class="delete-img" id="${item.id}" src="{% static 'img/delete.svg' %}" style="width: 12px; height: 12px; margin-right: 12px;">
+                                                    </div>
+                                                  </div>
+                                                  <div class="row justify-content-between card-footer">
+                                                    <div class="col-auto">
+                                                      ${item.created_at}
+                                                    </div>
+                                                    <div class="col-auto">
+                                                      <button type="button" value="${item.id}" id="comment-like${item.id}" class="btn btn-danger btn-outline-danger comment-like">0</button>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                      `);
+                      });
+                  }
+              });
+          })
+      })
+  </script>
   {% if user.is_authenticated %}
     <script type="text/javascript" src="{% static '/js/base.js' %}"></script>
     <script>
@@ -122,7 +320,44 @@
                             document.getElementById(id).classList.add('btn-outline-danger');
                             console.log('not like');
                         }
-                        document.getElementById(id).textContent = data.likes_count;
+                    }
+                });
+            });
+
+            $('.content').on('click', '.delete-img', function () {
+                const id = $(this).attr("id");
+                $.ajax({
+
+                    type: "GET",
+
+                    url: "/activity/delete_comment/",
+
+                    data: {'comment_id': id},
+
+                    cache: false,
+
+                    success: function (data) {
+                        console.log(data);
+                    }
+                });
+            });
+
+            $('#add-comment').submit(function (e) {
+                e.preventDefault();
+                let data = $(this).serialize();
+                $.ajax({
+
+                    type: "POST",
+
+                    url: "/activity/add_comment/",
+
+                    data: data,
+
+                    cache: false,
+
+                    success: function (data) {
+                        console.log(data);
+                        document.getElementById('add-comment').reset();
                     }
                 });
             });

@@ -4,6 +4,7 @@ from activity.forms import CommentForm
 from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.views.generic import TemplateView
+from cent import Client, get_timestamp, generate_token
 
 
 def home(request):
@@ -13,12 +14,14 @@ def home(request):
                                        favorites_count=Count('favorite', distinct=True),
                                        user_like=Count('likes', filter=Q(likes__author=request.user)),
                                        user_favorite=Count('favorite', filter=Q(favorite__author=request.user))) \
-                     .order_by('-likes_count', '-favorites_count', '-user_like', '-user_favorite')[:10]
+                     .order_by('-likes_count', '-favorites_count', '-user_like', '-user_favorite')[:5]
     else:
         dishes = Dish.objects.annotate(likes_count=Count('likes', distinct=True),
                                        favorites_count=Count('favorite', distinct=True)) \
-                     .order_by('-likes_count', '-favorites_count')[:10]
-    return render(request, 'home.html', {'dishes': dishes})
+                     .order_by('-likes_count', '-favorites_count')[:5]
+    timestamp = get_timestamp()
+    token = generate_token("secret", "", timestamp)
+    return render(request, 'home.html', {'dishes': dishes, 'token': token, 'timestamp': timestamp})
 
 
 def get_dish(request, dish_pk):
@@ -38,7 +41,6 @@ def get_dish(request, dish_pk):
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
-        print(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.author = request.user
@@ -47,8 +49,10 @@ def get_dish(request, dish_pk):
             return redirect(request.META.get('HTTP_REFERER'))
     else:
         form = CommentForm()
+    timestamp = get_timestamp()
+    token = generate_token("secret", "", timestamp)
     return render(request, 'dish.html',
-                  {'form': form, 'dish': dish, 'comments': comments})
+                  {'form': form, 'dish': dish, 'comments': comments, 'token': token, 'timestamp': timestamp})
 
 
 def get_ingredient(request, ingredient_pk):
