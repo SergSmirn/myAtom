@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     'widget_tweaks',
     'bleach',
+    'import_export',
 
     'accounts',
     'activity',
