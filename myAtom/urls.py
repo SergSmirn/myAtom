@@ -17,14 +17,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from cuisine.views import home, react, IndexView
+from cuisine.views import home
 import debug_toolbar
 
 
 urlpatterns = [
     path('', home, name='home'),
-    path('react/<int:page>', react, name='react'),
-    path('index', IndexView.as_view(), name='index'),
     path('activity/', include('activity.urls')),
     path('accounts/', include('accounts.urls')),
     path('cuisine/', include('cuisine.urls')),

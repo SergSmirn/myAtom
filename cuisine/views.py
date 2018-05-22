@@ -59,13 +59,3 @@ def get_ingredient(request, ingredient_pk):
     ingredient = get_object_or_404(Ingredient, pk=ingredient_pk)
     return render(request, 'ingredient.html', {'ingredient': ingredient})
 
-
-def react(request, page):
-    dishes = Dish.objects.annotate(likes_count=Count('likes', distinct=True),
-                                   favorites_count=Count('favorite', distinct=True)) \
-                 .order_by('-likes_count', '-favorites_count')[:10 * page]
-    return JsonResponse({'dishes': list(dishes.values('id', 'name', 'author__username', 'likes_count', 'favorites_count', 'created_at', 'picture_file'))})
-
-
-class IndexView(TemplateView):
-    template_name = 'index.html'
