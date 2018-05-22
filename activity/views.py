@@ -8,7 +8,7 @@ import bleach
 from cent import Client
 
 
-url = "http://localhost:8002"
+url = "http://204.48.29.193:8002"
 secret_key = "secret"
 
 
