@@ -14,12 +14,16 @@
     <div class="row justify-content-center" style="margin-top: 2%; margin-bottom: 1%">
       <div class="col-md-9 col-sm-12 card">
         <div class="row justify-content-between align-items-center card-header">
-          <h4 class="col-8">
+          <h4 class="col-9">
             <a href="{% url 'get_dish' dish.pk %}">{{ dish.name }}</a>
           </h4>
-          <div class="col-4">
-            <button type="button" value="{{ dish.pk }}" id="like{{ dish.pk }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes_count }}</button>
-            <button type="button" value="{{ dish.pk }}" id="favorite{{ dish.pk }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorites_count }}</button>
+          <div class="col-3 ml-auto">
+            <div class="row justify-content-end">
+            <div class="col-auto">
+              <button type="button" value="{{ dish.pk }}" id="like{{ dish.pk }}" class="btn btn-danger {% if not dish.user_like %}btn-outline-danger{% endif %} like">{{ dish.likes_count }}</button>
+              <button type="button" value="{{ dish.pk }}" id="favorite{{ dish.pk }}" class="btn btn-warning {% if not dish.user_favorite %}btn-outline-warning{% endif %} favorite">{{ dish.favorites_count }}</button>
+            </div>
+            </div>
           </div>
         </div>
         <div class="card-img">

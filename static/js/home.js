@@ -30,12 +30,16 @@ function getData() {
                 $('.content').append(`<div class="row justify-content-center" style="margin-top: 2%; margin-bottom: 1%">
                                             <div class="col-md-9 col-sm-12 card">
                                               <div class="row justify-content-between card-header">
-                                                <h4 class="col-auto">
+                                                <h4 class="col-9">
                                                   <a href="/cuisine/dish/${item.id}">${item.name}</a>
                                                 </h4>
-                                                <div class="col-auto">
-                                                  <button type="button" id="like${item.id}" value="${item.id}" class="btn btn-danger ${item.user_like ? '': 'btn-outline-danger'} like">${item.likes_count}</button>
-                                                  <button type="button" id="favorite${item.id}" value="${item.id}" class="btn btn-warning ${item.user_favorite ? '': 'btn-outline-warning'} favorite">${item.favorites_count}</button>
+                                                <div class="col-3">
+                                                  <div class="row justify-content-end">
+                                                  <div class="col-auto">
+                                                    <button type="button" id="like${item.id}" value="${item.id}" class="btn btn-danger ${item.user_like ? '': 'btn-outline-danger'} like">${item.likes_count}</button>
+                                                    <button type="button" id="favorite${item.id}" value="${item.id}" class="btn btn-warning ${item.user_favorite ? '': 'btn-outline-warning'} favorite">${item.favorites_count}</button>
+                                                  </div>
+                                                  </div>
                                                 </div>
                                               </div>
                                               <div class="card-img">
