@@ -23,8 +23,8 @@
       </div>
       <div class="row justify-content-start">
         {% for ingredient in dish.ingredients.all %}
-          <div class="col-auto">
-            <a href="{% url 'get_ingredient' ingredient.pk %}" class="btn btn-info" style="margin-top: 5%">{{ ingredient.name }}</a>
+          <div class="col-auto" style="margin-top: 4px">
+            <a href="{% url 'get_ingredient' ingredient.pk %}" class="btn btn-info">{{ ingredient.name }}</a>
           </div>
         {% endfor %}
       </div>
