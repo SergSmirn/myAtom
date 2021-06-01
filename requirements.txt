@@ -27,5 +27,5 @@ sqlparse==0.2.4
 toredis-fork==0.1.4
 tornado==4.2.1
 toro==0.8
-urllib3==1.22
+urllib3==1.26.5
 webencodings==0.5.1
